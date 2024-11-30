@@ -98,9 +98,9 @@ func webhook(w http.ResponseWriter, r *http.Request) {
 	// Отладочный блок
 	w.Header().Set("Content-Type", "text/plain")
 	errMsg := "Ошибок нет"
-	if err != nil {
-		errMsg = err.Error()
-	}
+	//if err != nil {
+	//	errMsg = err.Error()
+	//}
 	rr := fmt.Sprintf("%#v, %v", newMetric, errMsg)
 
 	_, _ = w.Write([]byte(rr))
