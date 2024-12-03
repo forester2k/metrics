@@ -34,7 +34,7 @@ func report(metric service.Saver) {
 	resp := response
 	//fmt.Println(resp)
 	_ = resp
-	// TODO: logic
+	// TODO: logic...
 }
 
 func main() {
