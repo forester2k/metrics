@@ -9,7 +9,7 @@ import (
 
 const reportInterval = 10 * time.Second
 const pollInterval = 2 * time.Second
-const host = "http://localhost:8080/"
+const host = "http://localhost:8080"
 
 func poll() {
 	//fmt.Println("polling", time.Now())
@@ -19,7 +19,7 @@ func poll() {
 func report(metric service.Saver) {
 	//fmt.Println("reporting", time.Now())
 
-	endpoint := host + "update" + metric.Path()
+	endpoint := host + "/update" + metric.Path()
 	client := &http.Client{}
 	request, err := http.NewRequest(http.MethodPost, endpoint, nil)
 	if err != nil {
@@ -29,7 +29,7 @@ func report(metric service.Saver) {
 
 	response, err := client.Do(request)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Ошибка в client.Do(request)", err)
 	}
 	resp := response
 	//fmt.Println(resp)
@@ -40,7 +40,7 @@ func report(metric service.Saver) {
 func main() {
 	mockGaugeMetric := service.GaugeMetric{Name: "someGaugeMetric", Value: float64(3.1)}
 	mockCounterMetric := service.CounterMetric{Name: "someCounterMetric", Value: int64(3)}
-
+	time.Sleep(2 * time.Second)
 	reportTicker := time.Tick(reportInterval)
 	pollTicker := time.Tick(pollInterval)
 	for {
