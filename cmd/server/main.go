@@ -95,7 +95,7 @@ func webhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Отладочный блок
+	// Отладочный блок...
 	w.Header().Set("Content-Type", "text/plain")
 	errMsg := "Ошибок нет"
 	//if err != nil {
