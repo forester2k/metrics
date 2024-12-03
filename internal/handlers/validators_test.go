@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestUrlValidate(t *testing.T) {
+func TestURLValidate(t *testing.T) {
 	type urlSlice []string
 
 	tests := []struct {
@@ -61,7 +61,7 @@ func TestUrlValidate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := UrlValidate(tt.urlSlice)
+			got, err := URLValidate(tt.urlSlice)
 			assert.Equalf(t, tt.want, got, "Saver want - %v, got - %v", tt.want, got)
 			assert.Equalf(t, tt.wantErr, err, "Err want - %v, got - %v", tt.wantErr, err)
 		})
