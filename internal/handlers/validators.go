@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-func UrlValidate(u []string) (service.Saver, error) {
+func URLValidate(u []string) (service.Saver, error) {
 	var res service.Saver
 	if len(u) < 4 {
 		return nil, fmt.Errorf("NotFound")
@@ -25,13 +25,13 @@ func UrlValidate(u []string) (service.Saver, error) {
 		if err != nil {
 			return nil, fmt.Errorf("BadRequest")
 		}
-		res = service.GaugeMetric{u[2], v}
+		res = service.GaugeMetric{Name: u[2], Value: v}
 	case "counter":
 		v, err := strconv.ParseInt(u[3], 10, 64)
 		if err != nil {
 			return nil, fmt.Errorf("BadRequest")
 		}
-		res = service.CounterMetric{u[2], v}
+		res = service.CounterMetric{Name: u[2], Value: v}
 	}
 
 	return res, nil

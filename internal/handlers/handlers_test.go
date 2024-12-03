@@ -94,6 +94,7 @@ func TestWebhook(t *testing.T) {
 			result := response.Result()
 			assert.Equal(t, tt.want.statusCode, result.StatusCode)
 			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
+			result.Body.Close()
 		})
 	}
 }

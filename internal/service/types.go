@@ -16,7 +16,7 @@ type GaugeMetric struct {
 	Value float64
 }
 
-func (g GaugeMetric) Save(*MemStorage) error {
+func (m GaugeMetric) Save(*MemStorage) error {
 	// ToDo
 	return nil
 }
@@ -34,7 +34,7 @@ func (m CounterMetric) Path() string {
 	return "/counter/" + m.Name + "/" + fmt.Sprint(m.Value)
 }
 
-func (g CounterMetric) Save(*MemStorage) error {
+func (m CounterMetric) Save(*MemStorage) error {
 	// ToDo
 	return nil
 }

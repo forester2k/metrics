@@ -13,7 +13,7 @@ func Webhook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	urlSlice := strings.Split(strings.Trim(r.URL.Path, "/ "), "/")
-	newMetric, err := UrlValidate(urlSlice)
+	newMetric, err := URLValidate(urlSlice)
 	if err != nil {
 		switch err.Error() {
 		case "BadRequest":
