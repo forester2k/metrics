@@ -7,9 +7,9 @@ import (
 	"time"
 )
 
-const reportInterval = 10 * time.Second
-const pollInterval = 2 * time.Second
-const host = "http://localhost:8080"
+const defaultReportInterval = 10
+const defaultPollInterval = 2
+const defaultHost = "localhost:8080"
 
 func poll() {
 	//fmt.Println("polling", time.Now())
@@ -19,7 +19,7 @@ func poll() {
 func report(metric service.Saver) {
 	//fmt.Println("reporting", time.Now())
 
-	endpoint := host + "/update" + metric.Path()
+	endpoint := "http://" + flagRunAddr + "/update" + metric.Path()
 	client := &http.Client{}
 	request, err := http.NewRequest(http.MethodPost, endpoint, nil)
 	if err != nil {
@@ -39,11 +39,12 @@ func report(metric service.Saver) {
 }
 
 func main() {
+	parseFlags()
 	mockGaugeMetric := service.GaugeMetric{Name: "someGaugeMetric", Value: float64(3.1)}
 	mockCounterMetric := service.CounterMetric{Name: "someCounterMetric", Value: int64(3)}
 	time.Sleep(2 * time.Second)
-	reportTicker := time.Tick(reportInterval)
-	pollTicker := time.Tick(pollInterval)
+	reportTicker := time.Tick(time.Duration(flagReportInterval) * time.Second)
+	pollTicker := time.Tick(time.Duration(flagPollInterval) * time.Second)
 	for {
 		select {
 		case <-reportTicker:

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/forester2k/metrics/internal/handlers"
 	"github.com/forester2k/metrics/internal/service"
 	"github.com/forester2k/metrics/internal/storage"
@@ -13,6 +14,7 @@ import (
 // var R *chi.Mux
 
 func main() {
+	parseFlags()
 
 	_ = service.GaugeMetric{}
 
@@ -25,6 +27,7 @@ func main() {
 }
 
 func run() error {
+	fmt.Println("Running server on", flagRunAddr)
 	//mux := service.Mux
 	mux := chi.NewRouter()
 
@@ -34,5 +37,5 @@ func run() error {
 	mux.Get("/{mUpdate}/{mType}/{mName}", handlers.ReadStoredHandler)
 	mux.Post("/{mUpdate}/{mType}/{mName}/{mValue}", handlers.Webhook)
 
-	return http.ListenAndServe("localhost:8080", mux)
+	return http.ListenAndServe(flagRunAddr, mux)
 }
