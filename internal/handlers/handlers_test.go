@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/forester2k/metrics/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -8,6 +9,9 @@ import (
 )
 
 func TestWebhook(t *testing.T) {
+	storage.Store = &storage.MemStorage{}
+	storage.Store.Init()
+
 	type want struct {
 		contentType string
 		statusCode  int
@@ -21,13 +25,13 @@ func TestWebhook(t *testing.T) {
 		{
 			name:    "Good gauge metric",
 			method:  http.MethodPost,
-			request: "/update/gauge/metricName/1.1",
+			request: "/update/gauge/Alloc/1.1",
 			want:    want{contentType: "text/plain", statusCode: http.StatusOK},
 		},
 		{
 			name:    "Good counter metric",
 			method:  http.MethodPost,
-			request: "/update/counter/metricName/3",
+			request: "/update/counter/PollCount/3",
 			want:    want{contentType: "text/plain", statusCode: http.StatusOK},
 		},
 		{

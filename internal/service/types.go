@@ -1,14 +1,17 @@
 package service
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/forester2k/metrics/internal/storage"
+	"github.com/go-chi/chi/v5"
+)
+
+var Mux *chi.Mux
 
 type Saver interface {
-	Save(*MemStorage) error
+	Save(*storage.MemStorage) error
+	Get(*storage.MemStorage) (Saver, error)
 	Path() string
-}
-
-type PathMaker interface {
-	PathMake() string
 }
 
 type GaugeMetric struct {
@@ -16,9 +19,21 @@ type GaugeMetric struct {
 	Value float64
 }
 
-func (m GaugeMetric) Save(*MemStorage) error {
-	// ToDo
+func (m GaugeMetric) Save(store *storage.MemStorage) error {
+	err := store.AddGauge(m.Name, m.Value)
+	if err != nil {
+		return fmt.Errorf("GaugeMetricSave: %s", err)
+	}
 	return nil
+}
+
+func (m GaugeMetric) Get(store *storage.MemStorage) (Saver, error) {
+	value, err := store.GetGauge(m.Name)
+	if err != nil {
+		return m, fmt.Errorf("GaugeMetricGet: %s", err)
+	}
+	m.Value = value
+	return m, nil
 }
 
 func (m GaugeMetric) Path() string {
@@ -30,16 +45,35 @@ type CounterMetric struct {
 	Value int64
 }
 
+func (m CounterMetric) Save(store *storage.MemStorage) error {
+	err := store.AddCounter(m.Name, m.Value)
+	if err != nil {
+		return fmt.Errorf("CounterMetricSave: %s", err)
+	}
+	return nil
+}
+
+func (m CounterMetric) Get(store *storage.MemStorage) (Saver, error) {
+	value, err := store.GetCounter(m.Name)
+	if err != nil {
+		return m, fmt.Errorf("CounterMetricGet: %s", err)
+	}
+	m.Value = value
+	return m, nil
+}
+
 func (m CounterMetric) Path() string {
 	return "/counter/" + m.Name + "/" + fmt.Sprint(m.Value)
 }
 
-func (m CounterMetric) Save(*MemStorage) error {
-	// ToDo
-	return nil
+type ListTaker interface {
+	ListTake(*storage.MemStorage) (MetricList, error)
 }
 
-type MemStorage struct {
-	Gauges   map[string]float64
-	Counters map[string]int64
+type MetricList storage.StoredList
+
+func (l *MetricList) TakeList(store *storage.MemStorage) {
+	ll := store.MakeList()
+	l.Gauges = ll.Gauges
+	l.Counters = ll.Counters
 }
