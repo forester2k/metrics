@@ -3,10 +3,9 @@ package service
 import (
 	"fmt"
 	"github.com/forester2k/metrics/internal/storage"
-	"github.com/go-chi/chi/v5"
 )
 
-var Mux *chi.Mux
+//var Mux *chi.Mux
 
 type Saver interface {
 	Save(*storage.MemStorage) error

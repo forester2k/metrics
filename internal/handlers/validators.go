@@ -27,13 +27,13 @@ func URLValidate(u []string) (service.Saver, error) {
 }
 
 func ValueValidate(u []string, m service.Saver) (service.Saver, error) {
-	switch m.(type) {
+	switch res := m.(type) {
 	case service.GaugeMetric:
 		v, err := strconv.ParseFloat(u[3], 64)
 		if err != nil {
 			return nil, fmt.Errorf("BadRequest")
 		}
-		res := m.(service.GaugeMetric)
+		//res := m.(service.GaugeMetric)
 		res.Value = v
 		return res, nil
 	case service.CounterMetric:
@@ -41,10 +41,10 @@ func ValueValidate(u []string, m service.Saver) (service.Saver, error) {
 		if err != nil {
 			return nil, fmt.Errorf("BadRequest")
 		}
-		res := m.(service.CounterMetric)
+		//res := m.(service.CounterMetric)
 		res.Value = v
 		return res, nil
 	default:
-		return nil, fmt.Errorf("This should never happen")
+		return nil, fmt.Errorf("this should never happen")
 	}
 }

@@ -74,11 +74,11 @@ func ReadStoredHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "text/plain")
 	var res string
-	switch m.(type) {
+	switch m := m.(type) {
 	case service.GaugeMetric:
-		res = fmt.Sprint(m.(service.GaugeMetric).Value)
+		res = fmt.Sprint(m.Value)
 	case service.CounterMetric:
-		res = fmt.Sprint(m.(service.CounterMetric).Value)
+		res = fmt.Sprint(m.Value)
 	}
 	_, _ = w.Write([]byte(res))
 }

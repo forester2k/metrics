@@ -25,8 +25,8 @@ func main() {
 }
 
 func run() error {
-	mux := service.Mux
-	mux = chi.NewRouter()
+	//mux := service.Mux
+	mux := chi.NewRouter()
 
 	mux.Get("/", handlers.ListStoredHandler)
 	mux.Post("/{mUpdate}", handlers.Webhook)
