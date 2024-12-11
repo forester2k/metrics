@@ -17,8 +17,6 @@ func poll() {
 }
 
 func report(metric service.Saver) {
-	//fmt.Println("reporting", time.Now())
-
 	endpoint := "http://" + flagRunAddr + "/update" + metric.Path()
 	client := &http.Client{}
 	request, err := http.NewRequest(http.MethodPost, endpoint, nil)
@@ -26,16 +24,13 @@ func report(metric service.Saver) {
 		panic(err)
 	}
 	request.Header.Add("Content-Type", "text/plain")
-
 	response, err := client.Do(request)
 	if err != nil {
 		fmt.Println("Ошибка в client.Do(request)", err)
 	}
 	resp := response
-	//fmt.Println(resp)
 	_ = resp
 	resp.Body.Close()
-	// TODO: logic...
 }
 
 func main() {
@@ -53,6 +48,5 @@ func main() {
 		case <-pollTicker:
 			go poll()
 		}
-
 	}
 }

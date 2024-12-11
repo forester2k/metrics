@@ -33,7 +33,6 @@ func ValueValidate(u []string, m service.Saver) (service.Saver, error) {
 		if err != nil {
 			return nil, fmt.Errorf("BadRequest")
 		}
-		//res := m.(service.GaugeMetric)
 		res.Value = v
 		return res, nil
 	case service.CounterMetric:
@@ -41,7 +40,6 @@ func ValueValidate(u []string, m service.Saver) (service.Saver, error) {
 		if err != nil {
 			return nil, fmt.Errorf("BadRequest")
 		}
-		//res := m.(service.CounterMetric)
 		res.Value = v
 		return res, nil
 	default:

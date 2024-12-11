@@ -46,21 +46,14 @@ func Webhook(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 	}
 
-	// Отладочный блок
 	w.Header().Set("Content-Type", "text/plain")
-	//errMsg := "Ошибок нет"
-	//
-	//rr := fmt.Sprintf("%#v, %v", newMetric, errMsg)
-	//
+
 	rr := ""
 	_, _ = w.Write([]byte(rr))
 }
 
 func ReadStoredHandler(w http.ResponseWriter, r *http.Request) {
-	//if r.Method != http.MethodPost {
-	//	w.WriteHeader(http.StatusMethodNotAllowed)
-	//	return
-	//}
+
 	urlSlice := strings.Split(strings.Trim(r.URL.Path, "/ "), "/")
 	m, err := URLValidate(urlSlice)
 	if err != nil {

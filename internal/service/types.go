@@ -5,8 +5,6 @@ import (
 	"github.com/forester2k/metrics/internal/storage"
 )
 
-//var Mux *chi.Mux
-
 type Saver interface {
 	Save(*storage.MemStorage) error
 	Get(*storage.MemStorage) (Saver, error)

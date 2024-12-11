@@ -9,18 +9,11 @@ import (
 	"net/http"
 )
 
-//var Store *storage.MemStorage
-
-// var R *chi.Mux
-
 func main() {
 	parseFlags()
-
 	_ = service.GaugeMetric{}
-
 	storage.Store = &storage.MemStorage{}
 	storage.Store.Init()
-
 	if err := run(); err != nil {
 		panic(err)
 	}
@@ -28,14 +21,11 @@ func main() {
 
 func run() error {
 	fmt.Println("Running server on", flagRunAddr)
-	//mux := service.Mux
 	mux := chi.NewRouter()
-
 	mux.Get("/", handlers.ListStoredHandler)
 	mux.Post("/{mUpdate}", handlers.Webhook)
 	mux.Post("/{mUpdate}/{mType}", handlers.Webhook)
 	mux.Get("/{mUpdate}/{mType}/{mName}", handlers.ReadStoredHandler)
 	mux.Post("/{mUpdate}/{mType}/{mName}/{mValue}", handlers.Webhook)
-
 	return http.ListenAndServe(flagRunAddr, mux)
 }

@@ -17,10 +17,9 @@ func (m *MemStorage) Init() {
 	m.Gauges = make(map[string]float64)
 	m.Counters = make(map[string]int64)
 	m.Counters["PollCount"] = 0
-	//m.Gauges["one"] = 1.1
-	//fmt.Println("from storage", m)
 }
 
+// for future:
 //func isValidMetric(name string, mType string, m *MemStorage) error {
 //	if _, ok := m.ValidKeys[name]; !ok {
 //		return nil
