@@ -1,9 +1,8 @@
 package main
 
 import (
-	"fmt"
-	"github.com/forester2k/metrics/internal/service"
-	"net/http"
+	"log"
+	"sync"
 	"time"
 )
 
@@ -11,42 +10,22 @@ const defaultReportInterval = 10
 const defaultPollInterval = 2
 const defaultHost = "localhost:8080"
 
-func poll() {
-	//fmt.Println("polling", time.Now())
-	// TODO: logic
-}
-
-func report(metric service.Saver) {
-	endpoint := "http://" + flagRunAddr + "/update" + metric.Path()
-	client := &http.Client{}
-	request, err := http.NewRequest(http.MethodPost, endpoint, nil)
-	if err != nil {
-		panic(err)
-	}
-	request.Header.Add("Content-Type", "text/plain")
-	response, err := client.Do(request)
-	if err != nil {
-		fmt.Println("Ошибка в client.Do(request)", err)
-	}
-	resp := response
-	_ = resp
-	resp.Body.Close()
-}
-
 func main() {
-	parseFlags()
-	mockGaugeMetric := service.GaugeMetric{Name: "someGaugeMetric", Value: float64(3.1)}
-	mockCounterMetric := service.CounterMetric{Name: "someCounterMetric", Value: int64(3)}
+	pollingInit()
+	err := parseFlags()
+	if err != nil {
+		log.Fatal(err)
+	}
 	time.Sleep(2 * time.Second)
 	reportTicker := time.Tick(time.Duration(flagReportInterval) * time.Second)
 	pollTicker := time.Tick(time.Duration(flagPollInterval) * time.Second)
+	var mutex sync.Mutex
 	for {
 		select {
 		case <-reportTicker:
-			go report(mockGaugeMetric)
-			go report(mockCounterMetric)
+			go report(&mutex)
 		case <-pollTicker:
-			go poll()
+			go poll(&mutex)
 		}
 	}
 }

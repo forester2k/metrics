@@ -11,58 +11,46 @@ func TestURLValidate(t *testing.T) {
 	type urlSlice []string
 
 	tests := []struct {
-		name     string
-		urlSlice urlSlice
-		want     service.Saver
-		wantErr  error
+		name    string
+		mType   string
+		mName   string
+		want    service.MetricHolder
+		wantErr error
 	}{
 		{
-			name:     "Good gauge metric",
-			urlSlice: urlSlice{"update", "gauge", "metricName", "1.1"},
-			want:     service.GaugeMetric{Name: "metricName", Value: float64(1.1)},
-			wantErr:  nil,
+			name:    "Good gauge metric",
+			mType:   "gauge",
+			mName:   "metricName",
+			want:    &service.GaugeMetric{Name: "metricName", Value: float64(0)},
+			wantErr: nil,
 		},
 		{
-			name:     "Good counter metric",
-			urlSlice: urlSlice{"update", "counter", "metricName", "1"},
-			want:     service.CounterMetric{Name: "metricName", Value: int64(1)},
-			wantErr:  nil,
-		},
-		//{
-		//	name:     "Bad gauge metric",
-		//	urlSlice: urlSlice{"update", "gauge", "metricName", "1a"},
-		//	want:     nil,
-		//	wantErr:  fmt.Errorf("BadRequest"),
-		//},
-		//{
-		//	name:     "Bad counter metric",
-		//	urlSlice: urlSlice{"update", "counter", "metricName", "3.1"},
-		//	want:     nil,
-		//	wantErr:  fmt.Errorf("BadRequest"),
-		//},
-		{
-			name:     "Bad metric type",
-			urlSlice: urlSlice{"update", "somethingWrong", "metricName", "3.1"},
-			want:     nil,
-			wantErr:  fmt.Errorf("BadRequest"),
+			name:    "Good counter metric",
+			mType:   "counter",
+			mName:   "metricName",
+			want:    &service.CounterMetric{Name: "metricName", Value: int64(0)},
+			wantErr: nil,
 		},
 		{
-			name:     "Not update in path",
-			urlSlice: urlSlice{"updater", "gauge", "metricName", "3.1"},
-			want:     nil,
-			wantErr:  fmt.Errorf("BadRequest"),
+			name:    "Bad metric gauge type",
+			mType:   "gaugeR",
+			mName:   "metricName",
+			want:    nil,
+			wantErr: fmt.Errorf("BadRequest"),
 		},
 		{
-			name:     "Short path",
-			urlSlice: urlSlice{"updater", "gauge"},
-			want:     nil,
-			wantErr:  fmt.Errorf("NotFound"),
+			name:    "Bad metric counter type",
+			mType:   "counterR",
+			mName:   "metricName",
+			want:    nil,
+			wantErr: fmt.Errorf("BadRequest"),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := URLValidate(tt.urlSlice)
-			//assert.Equalf(t, tt.want, got, "Saver want - %v, got - %v", tt.want, got)
+			got, err := URLValidate(tt.mType, tt.mName)
+
+			assert.Equalf(t, tt.want, got, "Saver want - %v, got - %v", tt.want, got)
 			assert.Equalf(t, tt.wantErr, err, "Err want - %v, got - %v", tt.wantErr, err)
 		})
 	}

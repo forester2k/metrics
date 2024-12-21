@@ -2,10 +2,9 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/forester2k/metrics/internal/service"
 	"github.com/forester2k/metrics/internal/storage"
 	"net/http"
-	"strings"
+	"strconv"
 )
 
 func getStatusError(err error) int {
@@ -21,76 +20,74 @@ func getStatusError(err error) int {
 }
 
 func Webhook(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-	urlSlice := strings.Split(strings.Trim(r.URL.Path, "/ "), "/")
-	newMetric, err := URLValidate(urlSlice)
+	mType := r.PathValue("mType")
+	mName := r.PathValue("mName")
+	mValue := r.PathValue("mValue")
+	m, err := URLValidate(mType, mName)
 	if err != nil {
 		w.WriteHeader(getStatusError(err))
 		return
 	}
-	newMetric, err = ValueValidate(urlSlice, newMetric)
-
+	m, err = ValueValidate(mValue, m)
 	if err != nil {
 		w.WriteHeader(getStatusError(err))
 		return
 	}
-	if newMetric == nil {
+	if m == nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	err = newMetric.Save(storage.Store)
+	//err = newMetric.Send(*storage.Store)
+	err = storage.Store.Save(&m)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 	}
-
 	w.Header().Set("Content-Type", "text/plain")
-
 	rr := ""
 	_, _ = w.Write([]byte(rr))
 }
 
 func ReadStoredHandler(w http.ResponseWriter, r *http.Request) {
-
-	urlSlice := strings.Split(strings.Trim(r.URL.Path, "/ "), "/")
-	m, err := URLValidate(urlSlice)
+	mType := r.PathValue("mType")
+	mName := r.PathValue("mName")
+	m, err := URLValidate(mType, mName)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	m, err = m.Get(storage.Store)
+	num, err := storage.Store.Get(&m)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	w.Header().Set("Content-Type", "text/plain")
+
 	var res string
-	switch m := m.(type) {
-	case service.GaugeMetric:
-		res = fmt.Sprint(m.Value)
-	case service.CounterMetric:
-		res = fmt.Sprint(m.Value)
+	switch n := num.(type) {
+	case float64:
+		res = strconv.FormatFloat(n, 'g', -1, 64)
+	case int64:
+		res = strconv.FormatInt(n, 10)
+	default:
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 	_, _ = w.Write([]byte(res))
 }
 
 func ListStoredHandler(w http.ResponseWriter, r *http.Request) {
-	l := &service.MetricList{Gauges: map[string]float64{}, Counters: map[string]int64{}}
-	l.TakeList(storage.Store)
-
+	l := storage.Store.MakeList()
 	w.Header().Set("Content-Type", "text/html")
-
-	body := `<html>
-    <head>
-    <title></title>
-    </head>
-    <body>
-`
+	body := `<!doctype html>
+		<html>
+    	<head>
+    	<title></title>
+    	</head>
+    	<body>
+		`
 	end := `     
-	</body>
-	</html>`
+		</body>
+		</html>`
 	for k, v := range l.Gauges {
 		body += fmt.Sprintf("<br> %s   %f\n", k, v)
 	}

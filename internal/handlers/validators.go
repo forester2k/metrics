@@ -6,43 +6,36 @@ import (
 	"strconv"
 )
 
-func URLValidate(u []string) (service.Saver, error) {
-	var res service.Saver
-	if len(u) <= 2 {
-		return nil, fmt.Errorf("NotFound")
-	}
-	switch {
-	case u[0] != "update" && u[0] != "value":
-		return nil, fmt.Errorf("BadRequest")
-	case u[1] != "gauge" && u[1] != "counter":
-		return nil, fmt.Errorf("BadRequest")
-	}
-	switch u[1] {
+func URLValidate(mType string, mName string) (service.MetricHolder, error) {
+	var res service.MetricHolder
+	switch mType {
 	case "gauge":
-		res = service.GaugeMetric{Name: u[2]}
+		res = &service.GaugeMetric{Name: mName}
 	case "counter":
-		res = service.CounterMetric{Name: u[2]}
+		res = &service.CounterMetric{Name: mName}
+	default:
+		return nil, fmt.Errorf("BadRequest")
 	}
 	return res, nil
 }
 
-func ValueValidate(u []string, m service.Saver) (service.Saver, error) {
+func ValueValidate(mValue string, m service.MetricHolder) (service.MetricHolder, error) {
 	switch res := m.(type) {
-	case service.GaugeMetric:
-		v, err := strconv.ParseFloat(u[3], 64)
+	case *service.GaugeMetric:
+		v, err := strconv.ParseFloat(mValue, 64)
 		if err != nil {
 			return nil, fmt.Errorf("BadRequest")
 		}
 		res.Value = v
 		return res, nil
-	case service.CounterMetric:
-		v, err := strconv.ParseInt(u[3], 10, 64)
+	case *service.CounterMetric:
+		v, err := strconv.ParseInt(mValue, 10, 64)
 		if err != nil {
 			return nil, fmt.Errorf("BadRequest")
 		}
 		res.Value = v
 		return res, nil
 	default:
-		return nil, fmt.Errorf("this should never happen")
+		return nil, fmt.Errorf("func ValueValidate: this should never happen")
 	}
 }

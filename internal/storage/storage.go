@@ -2,75 +2,68 @@ package storage
 
 import (
 	"fmt"
+	"github.com/forester2k/metrics/internal/service"
+	"sync"
 )
 
 type MemStorage struct {
-	Gauges    map[string]float64
-	Counters  map[string]int64
-	ValidKeys map[string]string
+	GMx      sync.Mutex
+	CMx      sync.Mutex
+	Gauges   map[string]float64
+	Counters map[string]int64
+}
+
+func (store *MemStorage) Save(m *service.MetricHolder) error {
+	switch metric := (*m).(type) {
+	case *service.GaugeMetric:
+		store.GMx.Lock()
+		store.Gauges[metric.Name] = metric.Value
+		store.GMx.Unlock()
+		return nil
+	case *service.CounterMetric:
+		store.CMx.Lock()
+		if _, ok := store.Counters[metric.Name]; !ok {
+			store.Counters[metric.Name] = 0
+		}
+		store.Counters[metric.Name] = store.Counters[metric.Name] + metric.Value
+		store.CMx.Unlock()
+		return nil
+	default:
+		return fmt.Errorf("func (store *MemStorage) Save: this should never happen")
+	}
 }
 
 var Store *MemStorage
 
-func (m *MemStorage) Init() {
-	m.ValidKeys = GetValidKeys()
-	m.Gauges = make(map[string]float64)
-	m.Counters = make(map[string]int64)
-	m.Counters["PollCount"] = 0
+func (store *MemStorage) Init() {
+	store.Gauges = make(map[string]float64)
+	store.Counters = make(map[string]int64)
+	store.Counters["PollCount"] = 0
 }
 
-// for future:
-//func isValidMetric(name string, mType string, m *MemStorage) error {
-//	if _, ok := m.ValidKeys[name]; !ok {
-//		return nil
-//		//return fmt.Errorf("storage: %s is not valid metric name", name)
-//	}
-//	if m.ValidKeys[name] != mType {
-//		return nil
-//		//return fmt.Errorf("storage: %s is not valid metric type", m.ValidKeys[name])
-//	}
-//	return nil
-//}
-
-func (m *MemStorage) AddGauge(name string, value float64) error {
-	//if err := isValidMetric(name, "gauge", m); err != nil {
-	//	return err
-	//}
-	m.Gauges[name] = value
-	return nil
-}
-
-func (m *MemStorage) AddCounter(name string, value int64) error {
-	//if err := isValidMetric(name, "counter", m); err != nil {
-	//	return err
-	//}
-	if _, ok := m.Counters[name]; !ok {
-		m.Counters[name] = 0
+func (store *MemStorage) Get(m *service.MetricHolder) (any, error) {
+	switch metric := (*m).(type) {
+	case *service.GaugeMetric:
+		store.GMx.Lock()
+		value, ok := store.Gauges[metric.Name]
+		store.GMx.Unlock()
+		if ok {
+			//metric.Value = value
+			return value, nil
+		}
+		return 0, fmt.Errorf("storage: metric %s not found", metric.Name)
+	case *service.CounterMetric:
+		store.CMx.Lock()
+		value, ok := store.Counters[metric.Name]
+		store.CMx.Unlock()
+		if ok {
+			//metric.Value = value
+			return value, nil
+		}
+		return 0, fmt.Errorf("storage: metric %s not found", metric.Name)
+	default:
+		return 0, fmt.Errorf("func (store *MemStorage) Get: this should never happen")
 	}
-	m.Counters[name] = m.Counters[name] + value
-	return nil
-}
-
-func (m *MemStorage) GetGauge(name string) (float64, error) {
-	//if err := isValidMetric(name, "gauge", m); err != nil {
-	//	return 0, err
-	//}
-	value, ok := m.Gauges[name]
-	if ok {
-		return value, nil
-	}
-	return 0, fmt.Errorf("storage: metric %s not found", name)
-}
-
-func (m *MemStorage) GetCounter(name string) (int64, error) {
-	//if err := isValidMetric(name, "counter", m); err != nil {
-	//	return 0, err
-	//}
-	value, ok := m.Counters[name]
-	if ok {
-		return value, nil
-	}
-	return 0, fmt.Errorf("storage: metric %s not found", name)
 }
 
 type StoredList struct {
@@ -78,16 +71,29 @@ type StoredList struct {
 	Counters map[string]int64
 }
 
-func (m *MemStorage) MakeList() *StoredList {
+func (store *MemStorage) MakeList() *StoredList {
 	l := &StoredList{
 		Gauges:   map[string]float64{},
 		Counters: map[string]int64{},
 	}
-	for k, v := range m.Gauges {
-		l.Gauges[k] = v
-	}
-	for k, v := range m.Counters {
-		l.Counters[k] = v
-	}
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+	go func() {
+		store.GMx.Lock()
+		for k, v := range store.Gauges {
+			l.Gauges[k] = v
+		}
+		store.GMx.Unlock()
+		wg.Done()
+	}()
+	go func() {
+		store.CMx.Lock()
+		for k, v := range store.Counters {
+			l.Counters[k] = v
+		}
+		store.CMx.Unlock()
+		wg.Done()
+	}()
+	wg.Wait()
 	return l
 }
