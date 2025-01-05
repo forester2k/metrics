@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/forester2k/metrics/internal/handlers"
+	"github.com/forester2k/metrics/internal/logger"
 	"github.com/forester2k/metrics/internal/service"
 	"github.com/forester2k/metrics/internal/storage"
 	"github.com/go-chi/chi/v5"
@@ -11,6 +12,8 @@ import (
 	"net/http"
 	"time"
 )
+
+const defaultLogLevel = "Info"
 
 var random *rand.Rand
 
@@ -32,8 +35,13 @@ func main() {
 }
 
 func run() error {
-	fmt.Println("Running server on", flagRunAddr)
+	fmt.Printf("Running server on \"%s\"\n", flagRunAddr)
+	if err := logger.Initialize(defaultLogLevel); err != nil {
+		return fmt.Errorf("main.run: %w", err)
+	}
+	fmt.Printf("...with \"%s\" logging level\n", defaultLogLevel)
 	mux := chi.NewRouter()
+	mux.Use(logger.RequestResponseLogger)
 	mux.Get("/", handlers.ListStoredHandler)
 	mux.Get("/value/{mType}/{mName}", handlers.ReadStoredHandler)
 	mux.Post("/update/{mType}/{mName}/{mValue}", handlers.Webhook)
