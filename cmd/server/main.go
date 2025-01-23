@@ -15,6 +15,8 @@ import (
 
 const defaultLogLevel = "Info"
 
+//const defaultLogLevel = "Debug"
+
 var random *rand.Rand
 
 func Init() {
@@ -43,6 +45,10 @@ func run() error {
 	mux := chi.NewRouter()
 	mux.Use(logger.RequestResponseLogger)
 	mux.Get("/", handlers.ListStoredHandler)
+	mux.Post("/update", handlers.WriteJSONMetricHandler)
+	mux.Post("/update/", handlers.WriteJSONMetricHandler)
+	mux.Post("/value", handlers.ReadJSONMetricHandler)
+	mux.Post("/value/", handlers.ReadJSONMetricHandler)
 	mux.Get("/value/{mType}/{mName}", handlers.ReadStoredHandler)
 	mux.Post("/update/{mType}/{mName}/{mValue}", handlers.Webhook)
 	return http.ListenAndServe(flagRunAddr, mux)

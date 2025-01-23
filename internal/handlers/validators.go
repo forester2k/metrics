@@ -39,3 +39,35 @@ func ValueValidate(mValue string, m service.MetricHolder) (service.MetricHolder,
 		return nil, fmt.Errorf("func ValueValidate: this should never happen")
 	}
 }
+
+func JSONTypeAndValueValidate(req *service.Metrics) (service.MetricHolder, error) {
+	var res service.MetricHolder
+	switch req.MType {
+	case "gauge":
+		if req.Value == nil {
+			return nil, fmt.Errorf("BadRequest")
+		}
+		res = &service.GaugeMetric{Name: req.ID, Value: *req.Value}
+	case "counter":
+		if req.Delta == nil {
+			return nil, fmt.Errorf("BadRequest")
+		}
+		res = &service.CounterMetric{Name: req.ID, Value: *req.Delta}
+	default:
+		return nil, fmt.Errorf("BadRequest")
+	}
+	return res, nil
+}
+
+func JSONTypeValidate(req *service.Metrics) (service.MetricHolder, error) {
+	var res service.MetricHolder
+	switch req.MType {
+	case "gauge":
+		res = &service.GaugeMetric{Name: req.ID}
+	case "counter":
+		res = &service.CounterMetric{Name: req.ID}
+	default:
+		return nil, fmt.Errorf("BadRequest")
+	}
+	return res, nil
+}

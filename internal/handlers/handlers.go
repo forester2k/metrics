@@ -1,8 +1,12 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/forester2k/metrics/internal/logger"
+	"github.com/forester2k/metrics/internal/service"
 	"github.com/forester2k/metrics/internal/storage"
+	"go.uber.org/zap"
 	"net/http"
 	"strconv"
 )
@@ -48,6 +52,86 @@ func Webhook(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte(rr))
 }
 
+func WriteJSONMetricHandler(w http.ResponseWriter, r *http.Request) {
+	// десериализуем запрос в структуру модели
+	logger.Log.Debug("decoding request")
+	var req service.Metrics
+	//if r.Body == io.ReadCloser(") {
+	//	w.WriteHeader(http.StatusBadRequest)
+	//	return
+	//}
+	dec := json.NewDecoder(r.Body)
+	if err := dec.Decode(&req); err != nil {
+		logger.Log.Debug("cannot decode request JSON body", zap.Error(err))
+		w.WriteHeader(http.StatusBadRequest) // Не правильнее ли BadRequest здесь?
+		return
+	}
+	m, err := JSONTypeAndValueValidate(&req)
+	if err != nil {
+		w.WriteHeader(getStatusError(err))
+		return
+	}
+	// Возможно надо убрать ! ! !
+	if m == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	err = storage.Store.Save(&m)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound) // Не правильнее ли InternalServerError здесь?
+	}
+	freshM, err := storage.Store.GetMetric(&m)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	resp := service.ConvToMetrics(freshM)
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(resp); err != nil {
+		logger.Log.Debug("error encoding response", zap.Error(err))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	// _, _ = w.Write([]byte(""))
+}
+
+func ReadJSONMetricHandler(w http.ResponseWriter, r *http.Request) {
+	// десериализуем запрос в структуру модели
+	logger.Log.Debug("decoding request")
+	var req service.Metrics
+	dec := json.NewDecoder(r.Body)
+	if err := dec.Decode(&req); err != nil {
+		logger.Log.Debug("cannot decode request JSON body", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError) // Не правильнее ли BadRequest здесь?
+		return
+	}
+	m, err := JSONTypeValidate(&req)
+	if err != nil {
+		w.WriteHeader(getStatusError(err))
+		return
+	}
+	// Возможно надо убрать ! ! !
+	if m == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	freshM, err := storage.Store.GetMetric(&m)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound) // Не правильнее ли InternalServerError здесь?
+		return
+	}
+	resp := service.ConvToMetrics(freshM)
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(resp); err != nil {
+		logger.Log.Debug("error encoding response", zap.Error(err))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	// _, _ = w.Write([]byte(""))
+}
+
 func ReadStoredHandler(w http.ResponseWriter, r *http.Request) {
 	mType := r.PathValue("mType")
 	mName := r.PathValue("mName")
@@ -56,7 +140,7 @@ func ReadStoredHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	num, err := storage.Store.Get(&m)
+	num, err := storage.Store.GetValue(&m)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return

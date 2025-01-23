@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/forester2k/metrics/internal/service"
 	"net/http"
@@ -17,6 +19,27 @@ func reportMetric(metric service.MetricHolder) error {
 		return fmt.Errorf("reportMetric: can't make request: %w", err)
 	}
 	request.Header.Add("Content-Type", "text/plain")
+	response, err := client.Do(request)
+	if err != nil {
+		return fmt.Errorf("reportMetric: ошибка в client.Do(request): %w", err)
+	}
+	response.Body.Close()
+	return nil
+}
+
+func reportJSONMetric(metric service.MetricHolder) error {
+	endpoint := "http://" + flagRunAddr + "/update"
+	m := service.ConvToMetrics(&metric)
+	body, err := json.Marshal(m)
+	if err != nil {
+		return fmt.Errorf("reportJSONMetric: can't marshal metric: %w", err)
+	}
+	request, err := http.NewRequest(http.MethodPost, endpoint, bytes.NewBuffer(body))
+	if err != nil {
+		return fmt.Errorf("reportMetric: can't make request: %w", err)
+	}
+	request.Header.Add("Content-Type", "application/json")
+	client := &http.Client{}
 	response, err := client.Do(request)
 	if err != nil {
 		return fmt.Errorf("reportMetric: ошибка в client.Do(request): %w", err)
@@ -66,7 +89,7 @@ func report(mutex *sync.Mutex) {
 	mutex.Lock()
 	gaugeMetrics := makeGaugeMetrics(m)
 	for _, metric := range gaugeMetrics {
-		err := reportMetric(metric)
+		err := reportJSONMetric(metric)
 		if err != nil {
 			// TODO вывести ошибку в лог уровня ERROR
 			err = fmt.Errorf("agent report(): %w", err)
@@ -74,7 +97,7 @@ func report(mutex *sync.Mutex) {
 		}
 	}
 	for _, metric := range specialMetrics {
-		err := reportMetric(metric)
+		err := reportJSONMetric(metric)
 		if err != nil {
 			// TODO вывести ошибку в лог уровня ERROR
 			err = fmt.Errorf("agent report(): %w", err)
