@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/forester2k/metrics/internal/middleware"
 	"github.com/forester2k/metrics/internal/service"
 	"net/http"
 	"reflect"
@@ -38,8 +39,16 @@ func reportJSONMetric(metric service.MetricHolder) error {
 	if err != nil {
 		return fmt.Errorf("reportMetric: can't make request: %w", err)
 	}
+
 	request.Header.Add("Content-Type", "application/json")
-	client := &http.Client{}
+	client := &http.Client{
+		Transport: middleware.Сonveyer(
+			nil,
+			//middleware.CustomTimer(os.Stdout),
+			//middleware.DumpResponse(true),
+			middleware.Compress(gzipCompressLevel),
+		),
+	}
 	response, err := client.Do(request)
 	if err != nil {
 		return fmt.Errorf("reportMetric: ошибка в client.Do(request): %w", err)

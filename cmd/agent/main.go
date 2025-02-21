@@ -1,6 +1,7 @@
 package main
 
 import (
+	"compress/gzip"
 	"log"
 	"sync"
 	"time"
@@ -9,6 +10,7 @@ import (
 const defaultReportInterval = 10
 const defaultPollInterval = 2
 const defaultHost = "localhost:8080"
+const gzipCompressLevel = gzip.BestSpeed
 
 func main() {
 	pollingInit()

@@ -90,7 +90,6 @@ func RequestResponseLogger(h http.Handler) http.Handler {
 			ResponseWriter: w,
 			responseData:   responseData,
 		}
-
 		h.ServeHTTP(&lw, r)
 		duration := time.Since(start)
 		Log.Info("Handled HTTP request",

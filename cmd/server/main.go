@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/forester2k/metrics/internal/handlers"
 	"github.com/forester2k/metrics/internal/logger"
+	"github.com/forester2k/metrics/internal/middleware"
 	"github.com/forester2k/metrics/internal/service"
 	"github.com/forester2k/metrics/internal/storage"
 	"github.com/go-chi/chi/v5"
@@ -43,6 +44,8 @@ func run() error {
 	}
 	fmt.Printf("...with \"%s\" logging level\n", defaultLogLevel)
 	mux := chi.NewRouter()
+	mux.Use(middleware.RequestGzipDecompressor)
+	mux.Use(middleware.ResponseGzipCompressor)
 	mux.Use(logger.RequestResponseLogger)
 	mux.Get("/", handlers.ListStoredHandler)
 	mux.Post("/update", handlers.WriteJSONMetricHandler)
