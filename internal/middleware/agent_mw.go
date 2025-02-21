@@ -80,12 +80,12 @@ func Compress(gzipCompressLevel int) Middleware {
 	return func(rt http.RoundTripper) http.RoundTripper {
 		return internalRT(func(req *http.Request) (resp *http.Response, err error) {
 			req.Header.Set("Content-Encoding", "gzip")
-			reqBody, err := io.ReadAll(req.Body)
+			reqBody, _ := io.ReadAll(req.Body)
 			req.Body.Close()
 			gz, err := compression.CompressGzip(reqBody, gzipCompressLevel)
 			if err != nil {
 				//ToDo: сдклать логгирование
-				fmt.Printf("!!! Ошибка при сжатии запроса %w \n", err.Error())
+				fmt.Printf("!!! Ошибка при сжатии запроса %v\n", err.Error())
 				return rt.RoundTrip(req)
 			}
 			req.Body = io.NopCloser(bytes.NewBuffer(gz))
