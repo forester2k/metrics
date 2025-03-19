@@ -90,12 +90,12 @@ func createPathAndFile(path string) (string, error) {
 	var err error
 	path, err = filepath.Abs(path)
 	if err != nil {
-		return "", fmt.Errorf("createPathAndFile: Ошибка при получении абсолютного пути %s: %w\n", path, err)
+		return "", fmt.Errorf("createPathAndFile: Ошибка при получении абсолютного пути %s: %w", path, err)
 	}
 	dir := filepath.Dir(path)
 	err = os.MkdirAll(dir, 0777)
 	if err != nil {
-		return "", fmt.Errorf("createPathAndFile: Ошибка при создании директории %s: %w\n", dir, err)
+		return "", fmt.Errorf("createPathAndFile: Ошибка при создании директории %s: %w", dir, err)
 	}
 	var file *os.File
 	file, err = os.Create(path)

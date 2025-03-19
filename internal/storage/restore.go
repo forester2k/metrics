@@ -18,7 +18,7 @@ func HandleFile(path string, isRestore bool) (string, error) {
 	var err error
 	path, err = filepath.Abs(path)
 	if err != nil {
-		return "", fmt.Errorf("HandleFile: Ошибка при получении абсолютного пути %s: %w\n", path, err)
+		return "", fmt.Errorf("HandleFile: Ошибка при получении абсолютного пути %s: %w", path, err)
 	}
 	var isFileExists bool
 	if _, err = os.Stat(path); err == nil {
@@ -30,14 +30,14 @@ func HandleFile(path string, isRestore bool) (string, error) {
 	if isFileExists && isRestore {
 		err := Store.readStoredData(path)
 		if err != nil {
-			return "", fmt.Errorf("HandleFile: can't read stored data %w\n", err)
+			return "", fmt.Errorf("HandleFile: can't read stored data %w", err)
 		}
 		return path, nil
 	}
 	dir := filepath.Dir(path)
 	err = os.MkdirAll(dir, 0777)
 	if err != nil {
-		return "", fmt.Errorf("HandleFile: can't make dir %s: %w\n", dir, err)
+		return "", fmt.Errorf("HandleFile: can't make dir %s: %w", dir, err)
 	}
 	var file *os.File
 	file, err = os.Create(path)
@@ -94,14 +94,15 @@ func FileStorageHandler(ctx context.Context, storePath string, flagStoreInterval
 // Tracks time intervals [flagStoreInterval] and runs the function
 // [*MemStorage.WriteStoreFile()] to save current metrics to a file
 func storeByTicker(ctx context.Context, storePath string, flagStoreInterval uint64) {
-	storeTicker := time.Tick(time.Duration(flagStoreInterval) * time.Second)
+	storeTicker := time.NewTicker(time.Duration(flagStoreInterval) * time.Second)
+	defer storeTicker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-storeSynqSave:
 			// Do noting
-		case <-storeTicker:
+		case <-storeTicker.C:
 			err := Store.WriteStoreFile(storePath)
 			if err != nil {
 				// может тут лучше логгирование?

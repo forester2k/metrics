@@ -1,19 +1,15 @@
 {
    "gauges": {
-      "Frees": 17,
-      "GetSet133": 583756.2214522966,
-      "NextGC": 4194304,
-      "NumForcedGC": 0,
-      "NumGC": 0,
-      "OtherSys": 695395,
+      "BuckHashSys": 5461,
+      "GetSet135": 283116.6068919757,
       "PauseTotalNs": 0,
-      "RandomValue": 0.4369686885919827,
+      "RandomValue": 0.3219673680860259,
       "StackInuse": 163840,
       "StackSys": 163840,
-      "Sys": 6574080
+      "Sys": 6836224
    },
    "counters": {
-      "GetSet252": 3766949583,
+      "GetSet159": 1718672802,
       "PollCount": 5
    }
 }
