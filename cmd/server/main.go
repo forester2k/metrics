@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/forester2k/metrics/internal/handlers"
 	"github.com/forester2k/metrics/internal/logger"
@@ -9,12 +10,12 @@ import (
 	"github.com/forester2k/metrics/internal/service"
 	"github.com/forester2k/metrics/internal/storage"
 	"github.com/go-chi/chi/v5"
-	"golang.org/x/sync/errgroup"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 )
@@ -58,22 +59,24 @@ func main() {
 		<-c
 		cancel()
 	}()
-	g, gCtx := errgroup.WithContext(ctx)
-	g.Go(func() error {
-		return run()
-	})
-	g.Go(func() error {
-		storage.FileStorageHandler(gCtx, storePath, flagStoreInterval)
-		return fmt.Errorf("fileStorageHandler was stoped")
-	})
-	g.Go(func() error {
-		<-gCtx.Done()
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		storage.FileStorageHandler(ctx, storePath, flagStoreInterval)
+	}()
+	go func() {
+		defer wg.Done()
+		<-ctx.Done()
 		fmt.Println("Shutdown server...")
-		return srv.Shutdown(context.Background())
-	})
-	if err := g.Wait(); err != nil {
-		fmt.Printf("exit reason: %s \n", err)
+		if err = srv.Shutdown(context.Background()); err != nil {
+			fmt.Printf("HTTP server Shutdown: %v\n", err)
+		}
+	}()
+	if err = run(); !errors.Is(err, http.ErrServerClosed) {
+		log.Fatalf("HTTP server ListenAndServe: %v", err)
 	}
+	wg.Wait()
 	fmt.Println("Saving data...")
 	err = storage.Store.WriteStoreFile(storePath)
 	if err != nil {
@@ -102,9 +105,7 @@ func run() error {
 	mux.Post("/value/", handlers.ReadJSONMetricHandler)
 	mux.Get("/value/{mType}/{mName}", handlers.ReadStoredHandler)
 	mux.Post("/update/{mType}/{mName}/{mValue}", handlers.Webhook)
-	//return http.ListenAndServe(flagRunAddr, mux)
 	srv.Addr = flagRunAddr
 	srv.Handler = mux
-	fmt.Println("+++ Ща как сервер запущу !!!!")
 	return srv.ListenAndServe()
 }

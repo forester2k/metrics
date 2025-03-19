@@ -82,22 +82,22 @@ func (store *MemStorage) WriteStoreFile(path string) error {
 // for saving data to a file.
 //   - [ storeBySinqSave(storePath) ] for flagStoreInterval=0
 //   - [ storeByTicker(storePath, flagStoreInterval) ] for any other flagStoreInterval
-func FileStorageHandler(gCtx context.Context, storePath string, flagStoreInterval uint64) {
+func FileStorageHandler(ctx context.Context, storePath string, flagStoreInterval uint64) {
 	// тут будем отслеживать время и запускать сохранение файла через интервал
 	if flagStoreInterval == 0 {
-		storeBySinqSave(gCtx, storePath)
+		storeBySinqSave(ctx, storePath)
 	} else {
-		storeByTicker(gCtx, storePath, flagStoreInterval)
+		storeByTicker(ctx, storePath, flagStoreInterval)
 	}
 }
 
 // Tracks time intervals [flagStoreInterval] and runs the function
 // [*MemStorage.WriteStoreFile()] to save current metrics to a file
-func storeByTicker(gCtx context.Context, storePath string, flagStoreInterval uint64) {
+func storeByTicker(ctx context.Context, storePath string, flagStoreInterval uint64) {
 	storeTicker := time.Tick(time.Duration(flagStoreInterval) * time.Second)
 	for {
 		select {
-		case <-gCtx.Done():
+		case <-ctx.Done():
 			return
 		case <-storeSynqSave:
 			// Do noting
@@ -113,10 +113,10 @@ func storeByTicker(gCtx context.Context, storePath string, flagStoreInterval uin
 
 // Monitors the channel [ storeSynqSave ] and runs the function
 // [*MemStorage.WriteStoreFile()] to save current metrics to a file
-func storeBySinqSave(gCtx context.Context, storePath string) {
+func storeBySinqSave(ctx context.Context, storePath string) {
 	for {
 		select {
-		case <-gCtx.Done():
+		case <-ctx.Done():
 			return
 		case <-storeSynqSave:
 			err := Store.WriteStoreFile(storePath)
