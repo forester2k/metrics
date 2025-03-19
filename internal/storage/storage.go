@@ -7,10 +7,10 @@ import (
 )
 
 type MemStorage struct {
-	GMx      sync.Mutex
-	CMx      sync.Mutex
-	Gauges   map[string]float64
-	Counters map[string]int64
+	GMx      sync.Mutex         `json:"-"`
+	CMx      sync.Mutex         `json:"-"`
+	Gauges   map[string]float64 `json:"gauges"`
+	Counters map[string]int64   `json:"counters"`
 }
 
 func (store *MemStorage) Save(m *service.MetricHolder) error {
@@ -19,6 +19,7 @@ func (store *MemStorage) Save(m *service.MetricHolder) error {
 		store.GMx.Lock()
 		store.Gauges[metric.Name] = metric.Value
 		store.GMx.Unlock()
+		storeSynqSave <- true
 		return nil
 	case *service.CounterMetric:
 		store.CMx.Lock()
@@ -27,6 +28,7 @@ func (store *MemStorage) Save(m *service.MetricHolder) error {
 		}
 		store.Counters[metric.Name] = store.Counters[metric.Name] + metric.Value
 		store.CMx.Unlock()
+		storeSynqSave <- true
 		return nil
 	default:
 		return fmt.Errorf("func (store *MemStorage) Save: this should never happen")
@@ -34,11 +36,13 @@ func (store *MemStorage) Save(m *service.MetricHolder) error {
 }
 
 var Store *MemStorage
+var storeSynqSave chan bool
 
 func (store *MemStorage) Init() {
 	store.Gauges = make(map[string]float64)
 	store.Counters = make(map[string]int64)
 	store.Counters["PollCount"] = 0
+	storeSynqSave = make(chan bool)
 }
 
 func (store *MemStorage) GetValue(m *service.MetricHolder) (any, error) {

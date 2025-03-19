@@ -1,12 +1,15 @@
 module github.com/forester2k/metrics
 
-go 1.22.2
+go 1.23.0
+
+toolchain go1.23.7
 
 require (
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/go-resty/resty/v2 v2.16.5
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
+	golang.org/x/sync v0.12.0
 )
 
 require (
