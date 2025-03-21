@@ -1,15 +1,6 @@
 {
-   "gauges": {
-      "BuckHashSys": 5461,
-      "GetSet135": 283116.6068919757,
-      "PauseTotalNs": 0,
-      "RandomValue": 0.3219673680860259,
-      "StackInuse": 163840,
-      "StackSys": 163840,
-      "Sys": 6836224
-   },
+   "gauges": {},
    "counters": {
-      "GetSet159": 1718672802,
-      "PollCount": 5
+      "PollCount": 0
    }
 }
