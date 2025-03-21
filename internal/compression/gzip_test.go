@@ -39,7 +39,10 @@ func TestCompressGzip(t *testing.T) {
 			}
 			var res bytes.Buffer
 			_, err = res.ReadFrom(r)
-			r.Close()
+			if err != nil {
+				log.Fatal(err)
+			}
+			_ = r.Close()
 			unzipped := res.Bytes()
 			if !reflect.DeepEqual(tt.args.data, unzipped) {
 				t.Errorf("before compress %v, after compress-decompress %v", zipped, unzipped)
