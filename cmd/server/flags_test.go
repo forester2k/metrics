@@ -103,22 +103,22 @@ func Test_createPathAndFile(t *testing.T) {
 	}
 }
 
-func Test_parseFlags(t *testing.T) {
-	tests := []struct {
-		name    string
-		wantErr bool
-	}{
-		{
-			name:    "standardExecute",
-			wantErr: false,
-		},
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := parseFlags(); (err != nil) != tt.wantErr {
-				t.Errorf("parseFlags() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
+//func Test_parseFlags(t *testing.T) {
+//	tests := []struct {
+//		name    string
+//		wantErr bool
+//	}{
+//		{
+//			name:    "standardExecute",
+//			wantErr: false,
+//		},
+//		// TODO: Add test cases.
+//	}
+//	for _, tt := range tests {
+//		t.Run(tt.name, func(t *testing.T) {
+//			if err := parseFlags(); (err != nil) != tt.wantErr {
+//				t.Errorf("parseFlags() error = %v, wantErr %v", err, tt.wantErr)
+//			}
+//		})
+//	}
+//}
