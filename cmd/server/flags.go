@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/forester2k/metrics/internal/storage"
 	"net"
 	"net/url"
 	"os"
@@ -71,7 +72,19 @@ func parseFlags() error {
 	}
 	// файл не существует а загружать его нужно !!!ОШИБКА
 	if !isFileExists && flagRestore {
-		return fmt.Errorf("parseFlags: wrong file name for load: %w", err)
+		//==============================================================
+		flagFileStoragePath, err = createPathAndFile(flagFileStoragePath)
+		if err != nil {
+			return fmt.Errorf("parseFlags: can't create file: %w", err)
+		}
+		isFileExists = true
+		err = storage.Store.WriteStoreFile(flagFileStoragePath)
+		if err != nil {
+			fmt.Println(fmt.Errorf("main: can't save file, %w", err))
+		}
+		//==============================================================
+
+		//return fmt.Errorf("parseFlags: wrong file name for load: %w", err)
 	}
 	// файл не существует - !!! создать файл
 	if !isFileExists {

@@ -30,7 +30,7 @@ const (
 	defaultLogLevel        string = "Info"
 	defaultStoreInterval   uint64 = 300 //сделать 300 как отлажу
 	defaultFileStoragePath string = "./file_st/saved.json"
-	defaultRestore         bool   = false
+	defaultRestore         bool   = true
 )
 
 var srv http.Server
@@ -41,13 +41,15 @@ func Init() {
 }
 
 func main() {
+	storage.Store = &storage.MemStorage{}
+	storage.Store.Init()
+
 	err := parseFlags()
 	if err != nil {
 		log.Fatal(err)
 	}
 	_ = service.GaugeMetric{}
-	storage.Store = &storage.MemStorage{}
-	storage.Store.Init()
+
 	storePath, err := storage.HandleFile(flagFileStoragePath, flagRestore)
 	if err != nil {
 		log.Fatal(err)
