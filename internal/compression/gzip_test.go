@@ -19,10 +19,22 @@ func TestCompressGzip(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "compres-decompres",
+			name: "compresDecompres",
 			args: args{data: []byte{72, 101, 108, 108, 11},
 				compressLevel: 1},
 			wantErr: false,
+		},
+		{
+			name: "emptyData",
+			args: args{data: []byte{},
+				compressLevel: 1},
+			wantErr: false,
+		},
+		{
+			name: "wrongCompresionLevel",
+			args: args{data: []byte{72, 101, 108, 108, 11},
+				compressLevel: 22},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -30,6 +42,9 @@ func TestCompressGzip(t *testing.T) {
 			zipped, err := CompressGzip(tt.args.data, tt.args.compressLevel)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CompressGzip() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if err != nil {
 				return
 			}
 			b := bytes.NewReader(zipped)
