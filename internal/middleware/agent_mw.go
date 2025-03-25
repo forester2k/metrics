@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/forester2k/metrics/internal/compression"
+	"github.com/forester2k/metrics/internal/logger"
+	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"net/http/httputil"
@@ -84,8 +86,7 @@ func Compress(gzipCompressLevel int) Middleware {
 			req.Body.Close()
 			gz, err := compression.CompressGzip(reqBody, gzipCompressLevel)
 			if err != nil {
-				//ToDo: сдклать логгирование
-				fmt.Printf("!!! Ошибка при сжатии запроса %v\n", err.Error())
+				logger.Log.Error("error encoding response", zap.Error(err))
 				return rt.RoundTrip(req)
 			}
 			req.Body = io.NopCloser(bytes.NewBuffer(gz))

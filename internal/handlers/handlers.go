@@ -63,17 +63,12 @@ func WriteJSONMetricHandler(w http.ResponseWriter, r *http.Request) {
 	dec := json.NewDecoder(r.Body)
 	if err := dec.Decode(&req); err != nil {
 		logger.Log.Debug("cannot decode request JSON body", zap.Error(err))
-		w.WriteHeader(http.StatusBadRequest) // Не правильнее ли BadRequest здесь?
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	m, err := JSONTypeAndValueValidate(&req)
 	if err != nil {
 		w.WriteHeader(getStatusError(err))
-		return
-	}
-	// Возможно надо убрать ! ! !
-	if m == nil {
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	err = storage.Store.Save(&m)

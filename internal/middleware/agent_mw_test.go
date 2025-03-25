@@ -1,5 +1,17 @@
 package middleware
 
+//
+//import (
+//	"bytes"
+//	"compress/gzip"
+//	"fmt"
+//	"io"
+//	"log"
+//	"net/http"
+//	"reflect"
+//	"testing"
+//)
+//
 //func TestCompress(t *testing.T) {
 //	type args struct {
 //		CompressLevel int
@@ -40,8 +52,9 @@ package middleware
 //
 //			rt := mw(http.DefaultTransport)
 //			rresp, err := rt.RoundTrip(req)
-//			//fmt.Println(err)
-//			_ = rresp.Body.Close()
+//			fmt.Println(err)
+//			_ = rresp
+//			//_ = rresp.Body.Close()
 //			//_ = err
 //			//!!! Что-то непонятное с возвращающимся err творится, она даже не печатается
 //			//fmt.Println(err)

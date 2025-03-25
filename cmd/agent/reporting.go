@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/forester2k/metrics/internal/logger"
 	"github.com/forester2k/metrics/internal/middleware"
 	"github.com/forester2k/metrics/internal/service"
+	"go.uber.org/zap"
 	"net/http"
 	"reflect"
 	"runtime"
@@ -81,8 +83,8 @@ func makeGaugeMetrics(m runtime.MemStats) []*service.GaugeMetric {
 			case reflect.Uint32:
 				val = float64(value.Uint())
 			default:
-				err := fmt.Errorf("report(): не найден обработчик для типа %v", value.Kind())
-				fmt.Println(err)
+				err := fmt.Errorf("не найден обработчик для типа %v", value.Kind())
+				logger.Log.Error("agent makeGaugeMetrics(): ", zap.Error(err))
 				val = float64(0)
 			}
 			mutex.Lock()
@@ -100,23 +102,18 @@ func report(mutex *sync.Mutex) {
 	for _, metric := range gaugeMetrics {
 		err := reportJSONMetric(metric)
 		if err != nil {
-			// TODO вывести ошибку в лог уровня ERROR
-			err = fmt.Errorf("agent report(): %w", err)
-			fmt.Println(err)
+			logger.Log.Error("agent report(): ошибка обработки gaugeMetrics", zap.Error(err))
 		}
 	}
 	for _, metric := range specialMetrics {
 		err := reportJSONMetric(metric)
 		if err != nil {
-			// TODO вывести ошибку в лог уровня ERROR
-			err = fmt.Errorf("agent report(): %w", err)
-			fmt.Println(err)
+			logger.Log.Error("agent report(): ошибка обработки specialMetrics", zap.Error(err))
 		}
 	}
 	err := specialMetrics["PollCount"].SetValue(int64(0))
 	if err != nil {
-		// TODO вывести ошибку в лог уровня ERROR
-		fmt.Println(err)
+		logger.Log.Error("agent report(): ошибка обработки PollCount", zap.Error(err))
 	}
 	mutex.Unlock()
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/forester2k/metrics/internal/logger"
+	"go.uber.org/zap"
 	"os"
 	"path/filepath"
 	"time"
@@ -100,30 +102,28 @@ func storeByTicker(ctx context.Context, storePath string, flagStoreInterval uint
 		select {
 		case <-ctx.Done():
 			return
-		case <-storeSynqSave:
+		case <-StoreSynqSave:
 			// Do noting
 		case <-storeTicker.C:
 			err := Store.WriteStoreFile(storePath)
 			if err != nil {
-				// может тут лучше логгирование?
-				fmt.Println(fmt.Errorf("storeByTicker: can't write file, %w", err))
+				logger.Log.Error("storeByTicker: can't write file", zap.Error(err))
 			}
 		}
 	}
 }
 
-// Monitors the channel [ storeSynqSave ] and runs the function
+// Monitors the channel [ StoreSynqSave ] and runs the function
 // [*MemStorage.WriteStoreFile()] to save current metrics to a file
 func storeBySinqSave(ctx context.Context, storePath string) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case <-storeSynqSave:
+		case <-StoreSynqSave:
 			err := Store.WriteStoreFile(storePath)
 			if err != nil {
-				// может тут лучше логгирование?
-				fmt.Println(fmt.Errorf("storeBySinqSave: can't write file, %w", err))
+				logger.Log.Error("storeBySinqSave: can't write file", zap.Error(err))
 			}
 		}
 	}

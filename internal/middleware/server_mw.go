@@ -42,8 +42,7 @@ func ResponseGzipCompressor(h http.Handler) http.Handler {
 		}
 		gz, err := gzip.NewWriterLevel(w, gzip.BestSpeed)
 		if err != nil {
-			// ToDo Как то странно ошибка обрабатывается, переделать ====================
-			io.WriteString(w, err.Error())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		defer gz.Close()

@@ -10,6 +10,7 @@ import (
 	"github.com/forester2k/metrics/internal/service"
 	"github.com/forester2k/metrics/internal/storage"
 	"github.com/go-chi/chi/v5"
+	"go.uber.org/zap"
 	"log"
 	"math/rand"
 	"net/http"
@@ -82,6 +83,7 @@ func main() {
 	fmt.Println("Saving data...")
 	err = storage.Store.WriteStoreFile(storePath)
 	if err != nil {
+		logger.Log.Error("main: can't save file", zap.Error(err))
 		fmt.Println(fmt.Errorf("main: can't save file, %w", err))
 	}
 }
