@@ -53,7 +53,8 @@ func main() {
 
 	err = storage.DBInit(flagDatabaseDSN)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Не удалось подсоединиться к базе данных")
+		//log.Fatal(err)
 	}
 	defer storage.DB.Close()
 
