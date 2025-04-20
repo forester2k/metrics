@@ -44,6 +44,7 @@ func Webhook(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "text/plain")
 	rr := ""
+	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte(rr))
 }
 
@@ -72,6 +73,7 @@ func ReadStoredHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte(res))
 }
 
@@ -95,5 +97,6 @@ func ListStoredHandler(w http.ResponseWriter, r *http.Request) {
 		body += fmt.Sprintf("<br> %s   %d\n", k, v)
 	}
 	body += end
+	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte(body))
 }
