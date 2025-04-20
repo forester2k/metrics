@@ -29,7 +29,11 @@ func TestMemStorage_Init(t *testing.T) {
 		})
 	}
 }
+
 func TestMemStorage_Save(t *testing.T) {
+	Store = &MemStorage{}
+	Store.Init()
+	StoreSynqSave = make(chan bool, 22) // buffer should be no less than number of testcases
 
 	tests := []struct {
 		name    string
@@ -76,41 +80,40 @@ func TestMemStorage_Save(t *testing.T) {
 	}
 }
 
-//
-//func TestMemStorage_Get(t *testing.T) {
-//	tests := []struct {
-//		name    string
-//		mName   string
-//		want    float64
-//		wantErr bool
-//	}{
-//		{
-//			name:    "Good metric",
-//			mName:   "Alloc",
-//			want:    float64(1.1),
-//			wantErr: false,
-//		},
-//		{
-//			name:    "Bad metric",
-//			mName:   "XXXAllocXXX",
-//			want:    float64(0),
-//			wantErr: true,
-//		},
-//	}
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			got, err := Store.Get(tt.mName)
-//			if (err != nil) != tt.wantErr {
-//				t.Errorf("GetGauge() error = %v, wantErr %v", err, tt.wantErr)
-//				return
-//			}
-//			if got != tt.want {
-//				t.Errorf("GetGauge() got = %v, want %v", got, tt.want)
-//			}
-//		})
-//	}
-//}
-
+// //
+// //func TestMemStorage_Get(t *testing.T) {
+// //	tests := []struct {
+// //		name    string
+// //		mName   string
+// //		want    float64
+// //		wantErr bool
+// //	}{
+// //		{
+// //			name:    "Good metric",
+// //			mName:   "Alloc",
+// //			want:    float64(1.1),
+// //			wantErr: false,
+// //		},
+// //		{
+// //			name:    "Bad metric",
+// //			mName:   "XXXAllocXXX",
+// //			want:    float64(0),
+// //			wantErr: true,
+// //		},
+// //	}
+// //	for _, tt := range tests {
+// //		t.Run(tt.name, func(t *testing.T) {
+// //			got, err := Store.Get(tt.mName)
+// //			if (err != nil) != tt.wantErr {
+// //				t.Errorf("GetGauge() error = %v, wantErr %v", err, tt.wantErr)
+// //				return
+// //			}
+// //			if got != tt.want {
+// //				t.Errorf("GetGauge() got = %v, want %v", got, tt.want)
+// //			}
+// //		})
+// //	}
+// //}
 func TestMemStorage_MakeList(t *testing.T) {
 	tests := []struct {
 		name string

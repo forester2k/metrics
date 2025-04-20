@@ -4,6 +4,30 @@ import (
 	"fmt"
 )
 
+// Metrics - структура для обмена метриками в формате JSON.
+//
+// ID - имя метрики.
+// MType - параметр, принимающий значение gauge или counter.
+// Delta - значение метрики в случае передачи counter.
+// Value - значение метрики в случае передачи gauge.
+type Metrics struct {
+	ID    string   `json:"id"`              // имя метрики
+	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
+	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
+	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
+}
+
+func ConvToMetrics(m *MetricHolder) Metrics {
+	switch mTemp := (*m).(type) {
+	case *GaugeMetric:
+		return Metrics{ID: mTemp.Name, MType: "gauge", Value: &mTemp.Value}
+	case *CounterMetric:
+		return Metrics{ID: mTemp.Name, MType: "counter", Delta: &mTemp.Value}
+	default:
+		return Metrics{} //this should never happen
+	}
+}
+
 type Storekeeper interface {
 	Save(MetricHolder) error
 }

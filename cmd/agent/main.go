@@ -1,17 +1,26 @@
 package main
 
 import (
+	"compress/gzip"
+	"github.com/forester2k/metrics/internal/logger"
 	"log"
 	"sync"
 	"time"
 )
 
-const defaultReportInterval = 10
-const defaultPollInterval = 2
-const defaultHost = "localhost:8080"
+const (
+	defaultReportInterval uint64 = 10
+	defaultPollInterval   uint64 = 2
+	defaultHost           string = "localhost:8080"
+	gzipCompressLevel     int    = gzip.BestSpeed
+	defaultLogLevel       string = "Info"
+)
 
 func main() {
 	pollingInit()
+	if err := logger.Initialize(defaultLogLevel); err != nil {
+		log.Fatal(err)
+	}
 	err := parseFlags()
 	if err != nil {
 		log.Fatal(err)

@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"github.com/forester2k/metrics/internal/logger"
 	"github.com/forester2k/metrics/internal/service"
+	"go.uber.org/zap"
 	"math/rand"
 	"runtime"
 	"sync"
@@ -25,15 +26,13 @@ func poll(mutex *sync.Mutex) {
 	runtime.ReadMemStats(&m)
 	err := specialMetrics["RandomValue"].SetValue(random.Float64())
 	if err != nil {
-		// TODO вывести ошибку в лог уровня ERROR
-		fmt.Println(err)
+		logger.Log.Error("poll: error to set RandomValue", zap.Error(err))
 	}
 	val := specialMetrics["PollCount"].GetValue().(int64)
 	val++
 	err = specialMetrics["PollCount"].SetValue(val)
 	if err != nil {
-		// TODO вывести ошибку в лог уровня ERROR
-		fmt.Println(err)
+		logger.Log.Error("poll: error to set PollCount", zap.Error(err))
 	}
 	mutex.Unlock()
 }

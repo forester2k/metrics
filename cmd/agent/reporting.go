@@ -1,8 +1,13 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"github.com/forester2k/metrics/internal/logger"
+	"github.com/forester2k/metrics/internal/middleware"
 	"github.com/forester2k/metrics/internal/service"
+	"go.uber.org/zap"
 	"net/http"
 	"reflect"
 	"runtime"
@@ -17,6 +22,35 @@ func reportMetric(metric service.MetricHolder) error {
 		return fmt.Errorf("reportMetric: can't make request: %w", err)
 	}
 	request.Header.Add("Content-Type", "text/plain")
+	response, err := client.Do(request)
+	if err != nil {
+		return fmt.Errorf("reportMetric: ошибка в client.Do(request): %w", err)
+	}
+	response.Body.Close()
+	return nil
+}
+
+func reportJSONMetric(metric service.MetricHolder) error {
+	endpoint := "http://" + flagRunAddr + "/update"
+	m := service.ConvToMetrics(&metric)
+	body, err := json.Marshal(m)
+	if err != nil {
+		return fmt.Errorf("reportJSONMetric: can't marshal metric: %w", err)
+	}
+	request, err := http.NewRequest(http.MethodPost, endpoint, bytes.NewBuffer(body))
+	if err != nil {
+		return fmt.Errorf("reportMetric: can't make request: %w", err)
+	}
+
+	request.Header.Add("Content-Type", "application/json")
+	client := &http.Client{
+		Transport: middleware.Сonveyer(
+			nil,
+			//middleware.CustomTimer(os.Stdout),
+			//middleware.DumpResponse(true),
+			middleware.Compress(gzipCompressLevel),
+		),
+	}
 	response, err := client.Do(request)
 	if err != nil {
 		return fmt.Errorf("reportMetric: ошибка в client.Do(request): %w", err)
@@ -49,8 +83,8 @@ func makeGaugeMetrics(m runtime.MemStats) []*service.GaugeMetric {
 			case reflect.Uint32:
 				val = float64(value.Uint())
 			default:
-				err := fmt.Errorf("report(): не найден обработчик для типа %v", value.Kind())
-				fmt.Println(err)
+				err := fmt.Errorf("не найден обработчик для типа %v", value.Kind())
+				logger.Log.Error("agent makeGaugeMetrics(): ", zap.Error(err))
 				val = float64(0)
 			}
 			mutex.Lock()
@@ -66,25 +100,20 @@ func report(mutex *sync.Mutex) {
 	mutex.Lock()
 	gaugeMetrics := makeGaugeMetrics(m)
 	for _, metric := range gaugeMetrics {
-		err := reportMetric(metric)
+		err := reportJSONMetric(metric)
 		if err != nil {
-			// TODO вывести ошибку в лог уровня ERROR
-			err = fmt.Errorf("agent report(): %w", err)
-			fmt.Println(err)
+			logger.Log.Error("agent report(): ошибка обработки gaugeMetrics", zap.Error(err))
 		}
 	}
 	for _, metric := range specialMetrics {
-		err := reportMetric(metric)
+		err := reportJSONMetric(metric)
 		if err != nil {
-			// TODO вывести ошибку в лог уровня ERROR
-			err = fmt.Errorf("agent report(): %w", err)
-			fmt.Println(err)
+			logger.Log.Error("agent report(): ошибка обработки specialMetrics", zap.Error(err))
 		}
 	}
 	err := specialMetrics["PollCount"].SetValue(int64(0))
 	if err != nil {
-		// TODO вывести ошибку в лог уровня ERROR
-		fmt.Println(err)
+		logger.Log.Error("agent report(): ошибка обработки PollCount", zap.Error(err))
 	}
 	mutex.Unlock()
 }
