@@ -32,6 +32,7 @@ const (
 	defaultStoreInterval   uint64 = 300 //сделать 300 как отлажу
 	defaultFileStoragePath string = "./file_st/saved.json"
 	defaultRestore         bool   = true
+	defaultDatabaseDSN     string = ""
 )
 
 var srv http.Server
@@ -49,6 +50,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	err = storage.DBInit(flagDatabaseDSN)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer storage.DB.Close()
+
 	_ = service.GaugeMetric{}
 
 	storePath, err := storage.HandleFile(flagFileStoragePath, flagRestore)
@@ -103,6 +111,8 @@ func run() error {
 	mux.Use(middleware.ResponseGzipCompressor)
 	mux.Use(logger.RequestResponseLogger)
 	mux.Get("/", handlers.ListStoredHandler)
+	mux.Get("/ping", handlers.CheckDBConnection)
+	mux.Get("/ping/", handlers.CheckDBConnection)
 	mux.Post("/update", handlers.WriteJSONMetricHandler)
 	mux.Post("/update/", handlers.WriteJSONMetricHandler)
 	mux.Post("/value", handlers.ReadJSONMetricHandler)

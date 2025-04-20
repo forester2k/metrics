@@ -20,6 +20,7 @@ var (
 	flagStoreInterval   uint64
 	flagFileStoragePath string
 	flagRestore         bool
+	flagDatabaseDSN     string
 )
 
 func parseFlags() error {
@@ -27,6 +28,8 @@ func parseFlags() error {
 	flag.Uint64Var(&flagStoreInterval, "i", defaultStoreInterval, "interval in seconds to store data to file")
 	flag.StringVar(&flagFileStoragePath, "f", defaultFileStoragePath, "file path to store data")
 	flag.BoolVar(&flagRestore, "r", defaultRestore, "if true server will read data from file in start")
+	flag.StringVar(&flagDatabaseDSN, "d", defaultDatabaseDSN, "DataSourceName string with format"+
+		"host=HOSTNAME user=USERNAME password=PASSWORD dbname=DBNAME sslmode=disable")
 	flag.Parse()
 	unknownArgs := flag.Args()
 	if len(unknownArgs) > 0 {
@@ -92,6 +95,9 @@ func parseFlags() error {
 		if err != nil {
 			return fmt.Errorf("parseFlags: can't create file: %w", err)
 		}
+	}
+	if envDatabaseDSN := os.Getenv("DATABASE_DSN"); envDatabaseDSN != "" {
+		flagDatabaseDSN = envDatabaseDSN
 	}
 	return nil
 }
