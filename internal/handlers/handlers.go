@@ -7,8 +7,10 @@ import (
 	"github.com/forester2k/metrics/internal/service"
 	"github.com/forester2k/metrics/internal/storage"
 	"go.uber.org/zap"
+	"golang.org/x/net/context"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func getStatusError(err error) int {
@@ -178,4 +180,16 @@ func ListStoredHandler(w http.ResponseWriter, r *http.Request) {
 	body += end
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte(body))
+}
+
+// ToDo: наполнить функцию ! сделано!
+func CheckDBConnection(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	status := http.StatusOK
+	if err := storage.DB.PingContext(ctx); err != nil {
+		status = http.StatusInternalServerError
+	}
+	w.WriteHeader(status)
+	// _, _ = w.Write([]byte(""))
 }
